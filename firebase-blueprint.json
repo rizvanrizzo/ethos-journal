@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "description": "A single journal entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "mood": { "type": "string", "enum": ["peaceful", "reflective", "excited", "tense", "gloomy", "neutral"] },
+        "moodEmoji": { "type": "string" },
+        "moodExplanation": { "type": "string" },
+        "summary": { "type": "string" },
+        "suggestion": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId", "title", "content", "mood", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data"
+    },
+    "/journals/{journalId}": {
+      "schema": "JournalEntry",
+      "description": "Journal entries, queryable by userId"
+    }
+  }
+}

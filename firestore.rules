@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 2. Validation Blueprints
+    function isValidJournal(data) {
+      return data.userId == request.auth.uid 
+        && data.title is string && data.title.size() <= 200
+        && data.content is string && data.content.size() <= 10000
+        && data.mood in ['peaceful', 'reflective', 'excited', 'tense', 'gloomy', 'neutral']
+        && data.createdAt is number
+        && data.updatedAt is number;
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId);
+    }
+
+    // Journals
+    match /journals/{journalId} {
+      allow create: if isSignedIn() 
+        && isValidId(journalId)
+        && isValidJournal(request.resource.data)
+        && request.resource.data.createdAt == request.time.toMillis(); // Using millis for consistency with JS timestamps
+      
+      allow get, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow update: if isSignedIn() 
+        && resource.data.userId == request.auth.uid
+        && isValidJournal(request.resource.data)
+        && request.resource.data.userId == resource.data.userId // Primary owner check
+        && request.resource.data.createdAt == resource.data.createdAt // Immutable creation time
+        && request.resource.data.updatedAt > resource.data.updatedAt; // Ensure temporal progress
+    }
+  }
+}
