@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "150722728355",
+    "project_id": "ethos-journel",
+    "storage_bucket": "ethos-journel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150722728355:android:6040daf1ec42734ae34a16",
+        "android_client_info": {
+          "package_name": "com.ethos.journal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrcPm1pSQGZGN52ZOjjZqt8Xb1BeDPpJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
