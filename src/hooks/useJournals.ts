@@ -14,10 +14,9 @@ import {
   updateDoc, 
   deleteDoc, 
   doc,
-  Timestamp,
   getDoc
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 import { JournalEntry, Mood } from '../types';
 
@@ -47,7 +46,7 @@ export const useJournals = () => {
       setJournals(data);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching journals:", error);
+      handleFirestoreError(error, OperationType.LIST, 'journals');
       setLoading(false);
     });
 
@@ -58,27 +57,39 @@ export const useJournals = () => {
     if (!user) return;
 
     const now = Date.now();
-    await addDoc(collection(db, 'journals'), {
-      userId: user.uid,
-      title,
-      content,
-      mood,
-      moodEmoji,
-      createdAt: now,
-      updatedAt: now,
-    });
+    try {
+      await addDoc(collection(db, 'journals'), {
+        userId: user.uid,
+        title,
+        content,
+        mood,
+        moodEmoji,
+        createdAt: now,
+        updatedAt: now,
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'journals');
+    }
   };
 
   const updateJournal = async (id: string, updates: Partial<JournalEntry>) => {
     const journalRef = doc(db, 'journals', id);
-    await updateDoc(journalRef, {
-      ...updates,
-      updatedAt: Date.now(),
-    });
+    try {
+      await updateDoc(journalRef, {
+        ...updates,
+        updatedAt: Date.now(),
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `journals/${id}`);
+    }
   };
 
   const deleteJournal = async (id: string) => {
-    await deleteDoc(doc(db, 'journals', id));
+    try {
+      await deleteDoc(doc(db, 'journals', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `journals/${id}`);
+    }
   };
 
   return { journals, loading, addJournal, updateJournal, deleteJournal };
@@ -98,6 +109,9 @@ export const useJournal = (id: string | undefined) => {
       } else {
         setJournal(null);
       }
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `journals/${id}`);
       setLoading(false);
     });
 
