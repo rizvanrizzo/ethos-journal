@@ -1,10 +1,10 @@
 {
-  "apiKey": "AIzaSyCrcPm1pSQGZGN52ZOjjZqt8Xb1BeDPpJI",
+  "apiKey": "AIzaSyDi1PcmgPejG7XsTnVXq12cp84osKqIwYM",
   "authDomain": "ethos-journel.firebaseapp.com",
   "projectId": "ethos-journel",
   "storageBucket": "ethos-journel.firebasestorage.app",
   "messagingSenderId": "150722728355",
-  "appId": "1:150722728355:web:6040daf1ec42734ae34a16",
-  "measurementId": "G-MEASUREMENT_ID",
+  "appId": "1:150722728355:web:8f5bce233c758d9fe34a16",
+  "measurementId": "G-K2M50TDZ38",
   "firestoreDatabaseId": "(default)"
 }
