@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ethos.journal.model.JournalEntry
 import com.ethos.journal.model.Mood
+import com.ethos.journal.service.GeminiService
+import com.ethos.journal.service.MoodAnalysis
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -16,6 +18,12 @@ class JournalViewModel : ViewModel() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
     
+    // Replace with your Gemini API Key in the code or via a BuildConfig field
+    private val geminiService = GeminiService("YOUR_API_KEY")
+
+    private val _analysis = MutableStateFlow<MoodAnalysis?>(null)
+    val analysis: StateFlow<MoodAnalysis?> = _analysis
+
     private val _journals = MutableStateFlow<List<JournalEntry>>(emptyList())
     val journals: StateFlow<List<JournalEntry>> = _journals
 
@@ -56,6 +64,14 @@ class JournalViewModel : ViewModel() {
             } else {
                 db.collection("journals").document(id).set(entry).await()
             }
+        }
+    }
+
+    fun analyzeMood(content: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _analysis.value = geminiService.detectMood(content)
+            _loading.value = false
         }
     }
 
