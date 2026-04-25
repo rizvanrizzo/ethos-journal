@@ -39,6 +39,7 @@ export const useJournals = () => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      console.log(`useJournals: Received snapshot with ${snapshot.docs.length} entries for user ${user.uid}`);
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -46,6 +47,7 @@ export const useJournals = () => {
       setJournals(data);
       setLoading(false);
     }, (error) => {
+      console.error('useJournals: snapshot error:', error);
       handleFirestoreError(error, OperationType.LIST, 'journals');
       setLoading(false);
     });

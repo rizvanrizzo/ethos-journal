@@ -21,6 +21,7 @@ export default function Editor() {
   const [content, setContent] = useState('');
   const [mood, setMood] = useState<Mood>('neutral');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [aiProcessing, setAiProcessing] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
 
@@ -46,16 +47,38 @@ export default function Editor() {
   const handleSave = async () => {
     if (!title || !content) return;
     setSaving(true);
+    setError(null);
+    console.log('Initiating save...', { title, id });
+    
+    // Safety timeout for Firestore operations
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timed out. Please check your network or Firebase configuration.')), 15000)
+    );
+
     try {
       const emoji = moods.find(m => m.type === mood)?.emoji || '🔘';
-      if (id) {
-        await updateJournal(id, { title, content, mood, moodEmoji: emoji });
-      } else {
-        await addJournal(title, content, mood, emoji);
+      const savePromise = id 
+        ? updateJournal(id, { title, content, mood, moodEmoji: emoji })
+        : addJournal(title, content, mood, emoji);
+
+      await Promise.race([savePromise, timeoutPromise]);
+      
+      console.log('Save successful, navigating...');
+      navigate('/', { replace: true });
+    } catch (e: any) {
+      console.error('Save operation failed:', e);
+      let errorMsg = 'Save failed. ';
+      try {
+        if (e.message.startsWith('{')) {
+          const errObj = JSON.parse(e.message);
+          errorMsg += errObj.error;
+        } else {
+          errorMsg += e.message;
+        }
+      } catch {
+        errorMsg += 'This might be a database permissions issue. Please ensure your Firebase rules are deployed.';
       }
-      navigate('/');
-    } catch (e) {
-      console.error(e);
+      setError(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -106,7 +129,7 @@ export default function Editor() {
   if (id && loadingJournal) return null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-full bg-white overflow-y-auto scrollbar-none pb-20">
       {/* Header */}
       <header className="px-6 py-4 flex justify-between items-center border-b border-stone-50 bg-white/80 backdrop-blur-md sticky top-0 z-30">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-stone-400 hover:text-stone-800 transition-colors">
@@ -133,6 +156,13 @@ export default function Editor() {
 
       {/* Editor */}
       <main className="max-w-3xl mx-auto p-8 md:pt-16">
+        {error && (
+          <div className="bg-red-50 text-red-500 p-4 rounded-2xl mb-8 text-xs font-bold flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+            <span>{error}</span>
+          </div>
+        )}
+
         <div className="flex gap-3 overflow-x-auto mb-12 pb-2 scrollbar-none">
           {moods.map(m => (
             <button 

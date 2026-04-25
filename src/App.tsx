@@ -30,11 +30,12 @@ export default function App() {
       <BrowserRouter>
         <AnimatePresence mode="wait">
           <Routes>
-            <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-            <Route path="/new" element={<PrivateRoute><Editor /></PrivateRoute>} />
-            <Route path="/edit/:id" element={<PrivateRoute><Editor /></PrivateRoute>} />
-            <Route path="/journal/:id" element={<PrivateRoute><Detail /></PrivateRoute>} />
+            <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/new" element={<Editor />} />
+            <Route path="/edit/:id" element={<Editor />} />
+            <Route path="/journal/:id" element={<Detail />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AnimatePresence>
       </BrowserRouter>

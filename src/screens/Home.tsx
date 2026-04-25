@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useJournals } from '../hooks/useJournals';
 import { auth } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'motion/react';
 import { Plus, Search, LogOut, Filter, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -13,10 +14,13 @@ import { format } from 'date-fns';
 import { Mood } from '../types';
 
 export default function Home() {
+  const { user } = useAuth();
   const { journals, loading } = useJournals();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood | 'all'>('all');
+
+  const isGuest = !user || user.uid === 'anonymous-guest-user';
 
   const filtered = journals.filter(j => {
     const matchesSearch = j.title.toLowerCase().includes(search.toLowerCase()) || 
@@ -34,7 +38,15 @@ export default function Home() {
     { type: 'neutral', emoji: '🔘' },
   ];
 
-  const handleLogout = () => auth.signOut();
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+    } catch (e) {
+      console.error('Sign out error:', e);
+    } finally {
+      navigate('/auth', { replace: true });
+    }
+  };
 
   const getTimeGreeting = () => {
     const hour = new Date().getHours();
@@ -44,17 +56,26 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light pb-32">
+    <div className="h-full bg-brand-light overflow-y-auto scrollbar-none pb-32">
       {/* Header */}
       <header className="px-6 pt-16 pb-8 sticky top-0 bg-brand-light/80 backdrop-blur-md z-40">
         <div className="max-w-4xl mx-auto flex justify-between items-end mb-8">
           <div>
             <p className="label-caps mb-1">{format(new Date(), 'EEEE, MMMM d')}</p>
-            <h1 className="text-4xl title-serif">{getTimeGreeting()}, {auth.currentUser?.email?.split('@')[0] || 'Soul'}.</h1>
+            <h1 className="text-4xl title-serif">{getTimeGreeting()}, {user?.email?.split('@')[0] || 'Soul'}.</h1>
+            {isGuest && <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mt-1">Guest Mode • Non-persistent</p>}
+            {!isGuest && <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest mt-1">Cloud Sync Active</p>}
           </div>
-          <button onClick={handleLogout} className="p-3 bg-brand-muted rounded-2xl text-brand-text-muted hover:text-red-500 transition-colors">
-            <LogOut size={20} />
-          </button>
+          {!isGuest && (
+            <button onClick={handleLogout} className="p-3 bg-brand-muted rounded-2xl text-brand-text-muted hover:text-red-500 transition-colors">
+              <LogOut size={20} />
+            </button>
+          )}
+          {isGuest && (
+            <button onClick={() => navigate('/auth')} className="px-4 py-2 bg-brand-muted rounded-xl text-xs font-bold text-brand hover:bg-brand hover:text-white transition-all uppercase tracking-widest">
+              Sign In
+            </button>
+          )}
         </div>
 
         <div className="max-w-4xl mx-auto flex flex-col gap-6">

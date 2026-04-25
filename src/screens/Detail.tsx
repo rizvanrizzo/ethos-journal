@@ -20,7 +20,7 @@ export default function Detail() {
   const handleDelete = async () => {
     if (id) {
       await deleteJournal(id);
-      navigate('/');
+      navigate('/', { replace: true });
     }
   };
 
@@ -33,7 +33,7 @@ export default function Detail() {
   if (!journal) return <div className="p-10 text-center">Entry not found.</div>;
 
   return (
-    <div className="min-h-screen bg-brand-light">
+    <div className="h-full bg-brand-light overflow-y-auto scrollbar-none">
       <header className="px-6 py-8 flex justify-between items-center bg-brand-light/80 backdrop-blur-sm sticky top-0 z-30">
         <button onClick={() => navigate('/')} className="p-3 bg-brand-muted rounded-full text-brand-text-muted hover:text-brand transition-colors">
           <ChevronLeft size={24} />
