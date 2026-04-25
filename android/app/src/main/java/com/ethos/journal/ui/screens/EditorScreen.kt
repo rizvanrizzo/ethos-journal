@@ -69,7 +69,7 @@ fun EditorScreen(navController: NavController, journalId: String?, viewModel: Jo
                 onValueChange = { title = it },
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.headlineSmall
+                textStyle = MaterialTheme.typography.headlineSmall
             )
             
             Spacer(Modifier.height(16.dp))
@@ -91,8 +91,10 @@ fun EditorScreen(navController: NavController, journalId: String?, viewModel: Jo
                 onValueChange = { content = it },
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 placeholder = { Text("Describe your essence...") },
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    disabledContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                 )
             )
         }

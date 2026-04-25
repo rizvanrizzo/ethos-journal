@@ -56,6 +56,7 @@ fun HomeScreen(navController: NavController, viewModel: JournalViewModel = viewM
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalItem(journal: JournalEntry, onClick: () -> Unit) {
     Card(

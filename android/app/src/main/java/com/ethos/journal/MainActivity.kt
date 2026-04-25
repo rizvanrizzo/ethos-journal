@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ethos.journal.ui.theme.EthosTheme
 import com.ethos.journal.ui.screens.HomeScreen
 import com.ethos.journal.ui.screens.LoginScreen
+import com.ethos.journal.ui.screens.EditorScreen
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
