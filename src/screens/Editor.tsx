@@ -8,20 +8,20 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useJournals, useJournal } from '../hooks/useJournals';
 import { geminiService } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, Sparkles, Save, Trash2, Wand2, X } from 'lucide-react';
+import { ChevronLeft, Sparkles, Save, Settings, Wand2, X, BrainCircuit } from 'lucide-react';
+import { format } from 'date-fns';
 import { Mood } from '../types';
 
 export default function Editor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addJournal, updateJournal, deleteJournal } = useJournals();
+  const { addJournal, updateJournal } = useJournals();
   const { journal, loading: loadingJournal } = useJournal(id);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [mood, setMood] = useState<Mood>('neutral');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [aiProcessing, setAiProcessing] = useState(false);
   const [showAiPanel, setShowAiPanel] = useState(false);
 
@@ -47,38 +47,16 @@ export default function Editor() {
   const handleSave = async () => {
     if (!title || !content) return;
     setSaving(true);
-    setError(null);
-    console.log('Initiating save...', { title, id });
-    
-    // Safety timeout for Firestore operations
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timed out. Please check your network or Firebase configuration.')), 15000)
-    );
-
     try {
       const emoji = moods.find(m => m.type === mood)?.emoji || '🔘';
-      const savePromise = id 
-        ? updateJournal(id, { title, content, mood, moodEmoji: emoji })
-        : addJournal(title, content, mood, emoji);
-
-      await Promise.race([savePromise, timeoutPromise]);
-      
-      console.log('Save successful, navigating...');
-      navigate('/', { replace: true });
-    } catch (e: any) {
-      console.error('Save operation failed:', e);
-      let errorMsg = 'Save failed. ';
-      try {
-        if (e.message.startsWith('{')) {
-          const errObj = JSON.parse(e.message);
-          errorMsg += errObj.error;
-        } else {
-          errorMsg += e.message;
-        }
-      } catch {
-        errorMsg += 'This might be a database permissions issue. Please ensure your Firebase rules are deployed.';
+      if (id) {
+        await updateJournal(id, { title, content, mood, moodEmoji: emoji });
+      } else {
+        await addJournal(title, content, mood, emoji);
       }
-      setError(errorMsg);
+      navigate('/', { replace: true });
+    } catch (e) {
+      console.error(e);
     } finally {
       setSaving(false);
     }
@@ -100,98 +78,81 @@ export default function Editor() {
     }
   };
 
-  const handleAiAnalysis = async () => {
-    if (!content || !id) return;
-    setAiProcessing(true);
-    try {
-      const [summary, moodData] = await Promise.all([
-        geminiService.summarize(content),
-        geminiService.detectMood(content)
-      ]);
-      
-      if (summary || moodData) {
-        await updateJournal(id, {
-          summary: summary || undefined,
-          mood: moodData?.mood || mood,
-          moodEmoji: moods.find(m => m.type === moodData?.mood)?.emoji || '🔘',
-          moodExplanation: moodData?.explanation,
-          suggestion: moodData?.suggestion
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setAiProcessing(false);
-      setShowAiPanel(false);
-    }
-  };
-
   if (id && loadingJournal) return null;
 
   return (
-    <div className="h-full bg-white overflow-y-auto scrollbar-none pb-20">
+    <div className="h-full bg-white flex flex-col">
       {/* Header */}
-      <header className="px-6 py-4 flex justify-between items-center border-b border-stone-50 bg-white/80 backdrop-blur-md sticky top-0 z-30">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-stone-400 hover:text-stone-800 transition-colors">
-          <ChevronLeft size={24} />
-        </button>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setShowAiPanel(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-full font-semibold text-sm hover:bg-purple-100 transition-all"
-          >
-            <Sparkles size={16} />
-            AI Assist
-          </button>
-          <button 
-            onClick={handleSave} 
-            disabled={saving || !title || !content}
-            className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-full font-semibold text-sm disabled:opacity-50 transition-all"
-          >
-            <Save size={16} />
-            {saving ? 'Saving...' : 'Save'}
-          </button>
+      <header className="px-6 py-6 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand-dark rounded-full flex items-center justify-center p-2.5">
+                <img src="https://img.icons8.com/ios-glyphs/30/FFFFFF/test-account.png" alt="user" className="w-full h-full opacity-80" />
+            </div>
+            <h2 className="font-bold text-[#1F2133] text-lg">Sanctuary</h2>
+        </div>
+        
+        <div className="flex items-center gap-4">
+            <Settings className="text-[#8E91B2]" size={22} />
+            <button 
+                onClick={handleSave}
+                disabled={saving || !title || !content}
+                className="px-6 py-2 bg-brand text-white rounded-xl font-bold text-sm shadow-lg shadow-brand/20 disabled:opacity-50 transition-all"
+            >
+                {saving ? '...' : 'Save'}
+            </button>
         </div>
       </header>
 
-      {/* Editor */}
-      <main className="max-w-3xl mx-auto p-8 md:pt-16">
-        {error && (
-          <div className="bg-red-50 text-red-500 p-4 rounded-2xl mb-8 text-xs font-bold flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-            <span>{error}</span>
-          </div>
-        )}
+      {/* Editor Content */}
+      <main className="flex-1 overflow-y-auto px-8 py-10 pb-32">
+        <div className="max-w-xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#8E91B2]">
+                    {format(new Date(), 'EEEE, MMMM d')}
+                </span>
+                <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                    Reflection
+                </span>
+            </div>
 
-        <div className="flex gap-3 overflow-x-auto mb-12 pb-2 scrollbar-none">
-          {moods.map(m => (
-            <button 
-              key={m.type}
-              onClick={() => setMood(m.type)}
-              className={`flex-shrink-0 w-20 h-24 rounded-3xl flex flex-col items-center justify-center gap-2 transition-all ${mood === m.type ? 'bg-brand text-white shadow-xl shadow-brand/10' : 'bg-brand-muted text-brand-text-muted border border-brand-border'}`}
-            >
-              <span className="text-3xl">{m.emoji}</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest">{m.type}</span>
-            </button>
-          ))}
+            <input 
+                type="text" 
+                placeholder="Untitled Entry" 
+                className="w-full text-4xl font-bold text-[#1F2133] border-none outline-none mb-8 placeholder:text-[#E5E9FF]"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+            />
+
+            <textarea 
+                ref={contentRef}
+                placeholder="Begin your reflection here..."
+                className="w-full h-[60vh] text-lg text-[#4A4D70] border-none outline-none resize-none leading-relaxed placeholder:text-[#8E91B2] font-medium"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+            />
         </div>
-
-        <input 
-          type="text" 
-          placeholder="A title for this moment..." 
-          className="w-full text-5xl font-serif italic text-brand-dark border-none outline-none mb-12 placeholder:text-brand-muted"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-
-        <textarea 
-          ref={contentRef}
-          placeholder="The light today was..."
-          className="w-full h-[50vh] text-xl text-brand-text-body border-none outline-none resize-none leading-loose placeholder:text-brand-muted font-serif italic"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
       </main>
+
+      {/* Floating Assistant Trigger */}
+      <div className="fixed bottom-12 left-1/2 -translate-x-1/2 w-full max-w-sm px-6">
+        <button 
+            onClick={() => setShowAiPanel(true)}
+            className="w-full bg-[#E5E9FF]/40 backdrop-blur-xl border border-white/50 p-4 rounded-3xl flex items-center justify-between group overflow-hidden relative"
+        >
+            <div className="flex items-center gap-4">
+                <div className="p-3 bg-brand text-white rounded-2xl shadow-lg shadow-brand/20">
+                    <BrainCircuit size={20} />
+                </div>
+                <div className="text-left">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand opacity-80">Assistant</p>
+                    <p className="text-sm font-bold text-[#1F2133]">Deepen this thought</p>
+                </div>
+            </div>
+            
+            {/* Pulsing glow */}
+            <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-brand/10 blur-xl rounded-full" />
+        </button>
+      </div>
 
       {/* AI Panel Bottom Sheet */}
       <AnimatePresence>
@@ -213,39 +174,29 @@ export default function Editor() {
               <div className="w-16 h-1 bg-brand-muted rounded-full mx-auto mb-10" />
               <div className="flex items-center gap-3 mb-10">
                 <div className="w-2 h-2 rounded-full bg-brand"></div>
-                <h2 className="text-xs font-bold uppercase tracking-widest">AI Assistant</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[#1F2133]">Assistant Actions</h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <button 
                   onClick={handleAiContinue}
                   disabled={aiProcessing}
-                  className="flex flex-col items-start p-8 bg-brand-muted/30 rounded-[32px] group hover:bg-brand-muted transition-all text-left border border-brand-border"
+                  className="w-full flex items-center gap-5 p-6 bg-brand-muted/30 rounded-[32px] group hover:bg-brand-muted transition-all text-left"
                 >
-                  <div className="p-4 bg-white rounded-2xl mb-5 group-hover:scale-110 transition-transform shadow-sm">
+                  <div className="p-4 bg-white rounded-2xl group-hover:scale-110 transition-transform shadow-sm">
                     <Wand2 className="text-brand" size={24} />
                   </div>
-                  <h3 className="font-serif italic text-lg text-brand-dark mb-2">Continue Writing</h3>
-                  <p className="text-brand-text-body text-xs leading-relaxed">Let Ethos help you expand on your thoughts naturally and gracefully.</p>
-                </button>
-
-                <button 
-                  onClick={handleAiAnalysis}
-                  disabled={aiProcessing || !id}
-                  className={`flex flex-col items-start p-8 bg-brand-muted/30 rounded-[32px] group hover:bg-brand-muted transition-all text-left border border-brand-border ${!id && 'opacity-50 cursor-not-allowed'}`}
-                >
-                  <div className="p-4 bg-white rounded-2xl mb-5 group-hover:scale-110 transition-transform shadow-sm">
-                    <Sparkles className="text-brand" size={24} />
+                  <div>
+                    <h3 className="font-bold text-lg text-[#1F2133]">Continue Writing</h3>
+                    <p className="text-[#8E91B2] text-xs">Let Sanctuary expand on your thoughts naturally.</p>
                   </div>
-                  <h3 className="font-serif italic text-lg text-brand-dark mb-2">Detect & Summarize</h3>
-                  <p className="text-brand-text-body text-xs leading-relaxed">Analyze the emotional resonance and distill the essence of your entry.</p>
                 </button>
               </div>
 
               {aiProcessing && (
                 <div className="mt-12 flex items-center justify-center gap-3 text-brand font-bold text-xs uppercase tracking-widest animate-pulse">
                   <Sparkles className="animate-spin" size={16} />
-                  Gemini is reflecting...
+                  Reflecting...
                 </div>
               )}
             </motion.div>

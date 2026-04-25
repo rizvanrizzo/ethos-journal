@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useJournal, useJournals } from '../hooks/useJournals';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, Edit3, Trash2, Sparkles, Smile, Info, Lightbulb } from 'lucide-react';
+import { ChevronLeft, Edit3, Trash2, Sparkles, Smile, Share2, Lightbulb, Book, LineChart, Library } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Detail() {
@@ -16,6 +16,7 @@ export default function Detail() {
   const { journal, loading } = useJournal(id);
   const { deleteJournal } = useJournals();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState<'journal' | 'assistant' | 'insights' | 'library'>('journal');
 
   const handleDelete = async () => {
     if (id) {
@@ -26,122 +27,136 @@ export default function Detail() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-brand-light">
-      <div className="animate-pulse text-brand-text-muted font-serif italic">Recalling moment...</div>
+      <div className="animate-pulse text-brand font-serif italic">Recalling moment...</div>
     </div>
   );
 
   if (!journal) return <div className="p-10 text-center">Entry not found.</div>;
 
   return (
-    <div className="h-full bg-brand-light overflow-y-auto scrollbar-none">
-      <header className="px-6 py-8 flex justify-between items-center bg-brand-light/80 backdrop-blur-sm sticky top-0 z-30">
-        <button onClick={() => navigate('/')} className="p-3 bg-brand-muted rounded-full text-brand-text-muted hover:text-brand transition-colors">
+    <div className="h-full bg-white overflow-y-auto scrollbar-none pb-40">
+      {/* Header Actions */}
+      <header className="px-6 py-6 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-30">
+        <button onClick={() => navigate('/')} className="p-3 text-[#1F2133] hover:bg-brand-muted rounded-full transition-colors">
           <ChevronLeft size={24} />
         </button>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2">
+            <h2 className="font-bold text-[#1F2133] px-2">Sanctuary</h2>
+        </div>
+        <div className="flex gap-1">
+          <button className="p-3 text-[#8E91B2] hover:text-brand transition-colors">
+            <Share2 size={20} />
+          </button>
           <button 
             onClick={() => navigate(`/edit/${id}`)}
-            className="p-3 bg-white rounded-full border border-brand-border text-brand-text-muted hover:text-brand transition-colors shadow-sm"
+            className="p-3 text-[#8E91B2] hover:text-brand transition-colors"
           >
             <Edit3 size={20} />
           </button>
           <button 
             onClick={() => setShowDeleteConfirm(true)}
-            className="p-3 bg-white rounded-full border border-brand-border text-brand-text-muted hover:text-red-500 transition-colors shadow-sm"
+            className="p-3 text-[#8E91B2] hover:text-red-500 transition-colors"
           >
             <Trash2 size={20} />
           </button>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-8 pt-16 pb-40">
-        {/* Meta Info */}
-        <div className="flex items-center gap-6 mb-12">
-          <div className="text-5xl p-6 bg-white rounded-[40px] shadow-sm border border-brand-border">
-            {journal.moodEmoji}
-          </div>
-          <div>
-            <p className="label-caps mb-2">
-              {format(journal.createdAt, 'EEEE, MMMM d, yyyy')}
+      <main className="max-w-xl mx-auto px-6 pt-6">
+        <div className="flex items-center gap-3 mb-4">
+            <span className="px-3 py-1 bg-brand-muted text-brand text-[10px] font-bold uppercase tracking-widest rounded-md">Morning Reflection</span>
+            <span className="text-[10px] font-bold text-[#8E91B2] uppercase tracking-widest">{format(journal.createdAt, 'MMMM d, yyyy')}</span>
+        </div>
+
+        <h1 className="text-4xl font-bold text-[#1F2133] leading-[1.1] mb-6">
+            {journal.title}
+        </h1>
+
+        <div className="flex flex-wrap gap-2 mb-10">
+            <span className="px-3 py-1 bg-brand-muted text-brand-text-muted text-[10px] font-bold rounded-full">#mindfulness</span>
+            <span className="px-3 py-1 bg-brand-muted text-brand-text-muted text-[10px] font-bold rounded-full">#nature</span>
+            <span className="px-3 py-1 bg-brand-muted text-brand-text-muted text-[10px] font-bold rounded-full">#clarity</span>
+        </div>
+
+        {/* Hero Image */}
+        <div className="w-full aspect-[16/9] rounded-[32px] overflow-hidden mb-10 shadow-lg shadow-brand/10">
+            <img 
+                src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=2070&auto=format&fit=crop" 
+                alt="nature" 
+                className="w-full h-full object-cover"
+            />
+        </div>
+
+        {/* Entry Text */}
+        <div className="mb-12">
+            <p className="text-[#4A4D70] text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                {journal.content}
             </p>
-            <h1 className="text-4xl title-serif leading-tight">
-              {journal.title}
-            </h1>
-          </div>
         </div>
 
-        {/* Content */}
-        <div className="bg-white p-10 md:p-14 rounded-[48px] shadow-sm border border-brand-border mb-12">
-          <p className="text-brand-text-body text-xl md:text-2xl leading-relaxed whitespace-pre-wrap font-serif italic">
-            {journal.content}
-          </p>
-        </div>
-
-        {/* AI Insights Section */}
-        {(journal.summary || journal.moodExplanation || journal.suggestion) && (
-          <div className="space-y-6">
+        {/* AI Insights Block */}
+        <section className="bg-brand-muted/30 p-8 rounded-[40px] border border-brand-border">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-2 h-2 rounded-full bg-brand"></div>
-              <h2 className="label-caps">AI Intelligence</h2>
+                <div className="p-2 bg-brand/10 text-brand rounded-lg">
+                    <Sparkles size={16} />
+                </div>
+                <h2 className="text-[10px] uppercase font-black tracking-widest text-brand">AI Insights</h2>
             </div>
             
-            {journal.summary && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="bg-brand-muted/30 p-8 rounded-[32px] border border-brand-border"
-              >
-                <div className="flex items-center gap-2 text-brand font-bold text-xs uppercase tracking-widest mb-4">
-                  <Sparkles size={14} />
-                  Distilled Essence
+            <div className="space-y-6">
+                <div>
+                    <h3 className="text-sm font-bold text-brand mb-1">Key themes:</h3>
+                    <p className="text-[#4A4D70] font-medium leading-relaxed">
+                        Personal growth, Gratitude, Presence.
+                    </p>
                 </div>
-                <p className="text-brand-dark leading-relaxed font-serif text-lg italic">
-                  {journal.summary}
-                </p>
-              </motion.div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {journal.moodExplanation && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white p-8 rounded-[32px] border border-brand-border"
-                >
-                  <div className="flex items-center gap-2 text-brand font-bold text-[10px] uppercase tracking-widest mb-4">
-                    <Smile size={14} />
-                    Mood Resonance
-                  </div>
-                  <p className="text-brand-text-body text-xs leading-loose italic">
-                    {journal.moodExplanation}
-                  </p>
-                </motion.div>
-              )}
+                <div>
+                    <h3 className="text-sm font-bold text-brand mb-1">Reflection:</h3>
+                    <p className="text-[#4A4D70] font-medium leading-relaxed italic opacity-80">
+                        {journal.summary || "You've noted a shift in your morning routine. This proactive stillness is correlating with higher clarity in your recent entries."}
+                    </p>
+                </div>
 
-              {journal.suggestion && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-brand p-8 rounded-[32px] text-white shadow-xl shadow-brand/10"
-                >
-                  <div className="flex items-center gap-2 font-bold text-[10px] uppercase tracking-widest mb-4 opacity-80">
-                    <Lightbulb size={14} />
-                    Daily Prompt
-                  </div>
-                  <p className="text-sm leading-relaxed font-serif italic">
-                    "{journal.suggestion}"
-                  </p>
-                </motion.div>
-              )}
+                <div className="flex gap-3 pt-2">
+                    <span className="px-4 py-2 bg-brand/10 text-brand text-[10px] font-bold uppercase tracking-widest rounded-full">Clarity +12%</span>
+                    <span className="px-4 py-2 bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-widest rounded-full">Anxiety Lower</span>
+                </div>
             </div>
-          </div>
-        )}
+        </section>
+
+        {/* Pagination placeholder */}
+        <div className="mt-16 flex justify-between items-center py-8 border-t border-brand-border">
+            <div className="text-left">
+                <p className="label-caps mb-1">Previous</p>
+                <p className="font-bold text-[#1F2133]">The rainy evening</p>
+            </div>
+            <div className="text-right">
+                <p className="label-caps mb-1">Next</p>
+                <p className="font-bold text-[#1F2133]">Coffee shop thoughts</p>
+            </div>
+        </div>
       </main>
+
+      {/* Persistent Bottom Nav Bar */}
+      <nav className="glass-nav">
+          <button className={`flex-1 flex flex-col items-center gap-1 p-3 transition-all ${activeTab === 'journal' ? 'nav-item-active' : 'text-brand-text-muted'}`}>
+              <Book size={20} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Journal</span>
+          </button>
+          <button className={`flex-1 flex flex-col items-center gap-1 p-3 transition-all ${activeTab === 'assistant' ? 'nav-item-active' : 'text-brand-text-muted'}`}>
+              <Sparkles size={20} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Assistant</span>
+          </button>
+          <button className={`flex-1 flex flex-col items-center gap-1 p-3 transition-all ${activeTab === 'insights' ? 'nav-item-active' : 'text-brand-text-muted'}`}>
+              <LineChart size={20} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Insights</span>
+          </button>
+          <button className={`flex-1 flex flex-col items-center gap-1 p-3 transition-all ${activeTab === 'library' ? 'nav-item-active' : 'text-brand-text-muted'}`}>
+              <Library size={20} />
+              <span className="text-[10px] font-bold uppercase tracking-tight">Library</span>
+          </button>
+      </nav>
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
@@ -163,7 +178,7 @@ export default function Detail() {
               <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8">
                 <Trash2 size={32} />
               </div>
-              <h2 className="text-2xl title-serif mb-3">Release memory?</h2>
+              <h2 className="text-2xl font-bold mb-3 text-[#1F2133]">Release memory?</h2>
               <p className="text-brand-text-body mb-10 leading-relaxed text-sm italic">This moment will be returned to the ether. Are you certain?</p>
               <div className="flex flex-col gap-3">
                 <button 

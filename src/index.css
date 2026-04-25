@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand: #7B8365; 
-  --color-brand-light: #F9F7F2;
-  --color-brand-muted: #F2EDE4;
-  --color-brand-border: #E5E0D5;
-  --color-brand-dark: #3D3D33;
-  --color-brand-text: #434338;
-  --color-brand-text-muted: #A9A294;
-  --color-brand-text-body: #706E62;
+  --color-brand: #8C9EFF; 
+  --color-brand-light: #F9FAFF;
+  --color-brand-muted: #F0F2FF;
+  --color-brand-border: #E5E9FF;
+  --color-brand-dark: #1A1C3E;
+  --color-brand-text: #1F2133;
+  --color-brand-text-muted: #8E91B2;
+  --color-brand-text-body: #4A4D70;
+  --color-accent-teal: #4DEEE1;
+  --color-accent-orange: #FFB38C;
   
   --font-sans: "Inter", "system-ui", sans-serif;
   --font-serif: "Playfair Display", "Georgia", serif;
@@ -45,29 +47,49 @@ body {
   display: none;
 }
 
+.onboarding-dot {
+  @apply h-1 w-6 rounded-full bg-brand/30 transition-all;
+}
+
+.onboarding-dot.active {
+  @apply w-10 bg-brand;
+}
+
+.glass-nav {
+  @apply fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-lg bg-white/80 backdrop-blur-2xl rounded-[32px] p-2 flex justify-around items-center shadow-2xl shadow-brand/10 border border-brand-border z-50;
+}
+
+.insight-card {
+  @apply bg-brand-muted/40 p-6 rounded-[32px] border border-brand-border relative overflow-hidden;
+}
+
+.ai-badge {
+  @apply px-3 py-1 bg-brand/10 text-brand text-[10px] uppercase font-bold tracking-widest rounded-full flex items-center gap-2;
+}
+
 .auth-card {
-  @apply bg-white p-8 rounded-[40px] shadow-2xl shadow-black/[0.03] border border-brand-muted w-full max-w-md;
+  @apply bg-white p-8 rounded-[40px] shadow-2xl shadow-brand/5 border border-brand-border w-full max-w-md;
 }
 
 .journal-card {
-  @apply bg-white p-6 rounded-[32px] shadow-sm border border-brand-muted hover:shadow-md hover:border-brand/20 transition-all duration-300 cursor-pointer;
+  @apply bg-white p-6 rounded-[32px] shadow-sm border border-brand-border hover:shadow-xl hover:shadow-brand/5 hover:border-brand/30 transition-all duration-500 cursor-pointer;
 }
 
 .input-field {
-  @apply w-full px-6 py-4 bg-brand-muted border-none rounded-full focus:ring-1 focus:ring-brand outline-none placeholder-brand-text-muted transition-all;
+  @apply w-full px-6 py-4 bg-brand-muted/50 border-none rounded-2xl focus:ring-2 focus:ring-brand/20 outline-none placeholder-brand-text-muted transition-all font-medium;
 }
 
 .btn-primary {
-  @apply w-full py-4 bg-brand text-white rounded-full font-bold hover:bg-brand-dark transition-all transform active:scale-[0.98] disabled:opacity-50;
+  @apply w-full py-5 bg-[#8C9EFF] text-white rounded-2xl font-bold hover:bg-[#7A8CFF] transition-all transform active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-brand/20;
 }
 
 .fab {
-  @apply fixed bottom-8 right-8 w-16 h-16 bg-brand text-white rounded-full flex items-center justify-center shadow-2xl shadow-brand/20 hover:scale-110 active:scale-95 transition-all z-50 ring-4 ring-brand-light;
+  @apply fixed bottom-24 right-8 w-14 h-14 bg-brand text-white rounded-[20px] flex items-center justify-center shadow-2xl shadow-brand/30 hover:scale-110 active:scale-95 transition-all z-50;
 }
 
 /* Typography Helpers */
 .title-serif {
-  @apply font-serif italic text-brand-dark;
+  @apply font-serif text-brand-dark;
 }
 
 .label-caps {
